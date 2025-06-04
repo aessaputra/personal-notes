@@ -1,15 +1,19 @@
+import React from 'react';
 import PropTypes from 'prop-types';
+import TextField from '@mui/material/TextField';
+import { useLocale } from '../contexts/LocaleContext';
 
 function SearchBar({ currentSearchTerm, onSearch }) {
+  const { translate } = useLocale();
+
   return (
-    <div className="search-bar">
-      <input
-        type="text"
-        placeholder="Cari catatan berdasarkan judul..."
-        value={currentSearchTerm}
-        onChange={(e) => onSearch(e.target.value)}
-      />
-    </div>
+    <TextField
+      fullWidth
+      variant="outlined"
+      placeholder={translate('searchPlaceholder')}
+      value={currentSearchTerm}
+      onChange={(e) => onSearch(e.target.value)}
+    />
   );
 }
 

@@ -2,17 +2,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import NoteItem from './NoteItem';
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useLocale } from '../contexts/LocaleContext';
 
-// Impor motion dan AnimatePresence dari Framer Motion
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Varian untuk container list (untuk stagger)
 const listContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1, // Setiap anak akan dianimasikan dengan jeda 0.1s
+      staggerChildren: 0.1,
     },
   },
   exit: {
@@ -24,41 +25,78 @@ const listContainerVariants = {
   },
 };
 
-function NoteList({ notes, onDelete, onArchive, onUnarchive, listType }) {
+const noteItemShapeForList = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  title: PropTypes.string,
+  body: PropTypes.string,
+  createdAt: PropTypes.string.isRequired,
+  archived: PropTypes.bool.isRequired,
+});
+
+function NoteList({
+  notes,
+  onDelete,
+  onArchive,
+  onUnarchive,
+  listType,
+  isLoading,
+}) {
+  const { translate } = useLocale();
+
+  if (isLoading && (!notes || notes.length === 0)) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          py: 5,
+          minHeight: '200px',
+        }}
+      >
+        <CircularProgress />
+        <Typography sx={{ ml: 2, color: 'text.secondary' }}>
+          {translate('loadingNotes')}
+        </Typography>
+      </Box>
+    );
+  }
+
   if (!notes || notes.length === 0) {
     return (
       <Typography
-        // className="notes-list__empty-message" // Hapus jika tidak ada styling khusus lagi
         sx={{
           textAlign: 'center',
           paddingY: 5,
           color: 'text.secondary',
           marginTop: 2,
+          minHeight: '100px',
         }}
       >
-        {listType === 'active' ? 'Tidak ada catatan aktif.' : 'Arsip kosong.'}
+        {listType === 'active'
+          ? translate('noActiveNotes')
+          : translate('noArchivedNotes')}
       </Typography>
     );
   }
 
   return (
-    // motion.div untuk animasi container
     <motion.div
       variants={listContainerVariants}
       initial="hidden"
       animate="visible"
       exit="exit"
-      // className="notes-list" // Anda bisa mengembalikan kelas ini jika ada styling spesifik untuk list vertikal
-      style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} // Mengatur tumpukan vertikal dengan jarak
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        marginTop: '16px',
+      }}
     >
       <AnimatePresence>
         {notes.map((note) => (
-          // Tidak perlu Grid item, NoteItem langsung di-render
-          // Key dipindahkan ke NoteItem jika NoteItem adalah komponen motion langsung
-          // Jika NoteItem membungkus motion component, key bisa di NoteItem atau wrapper terluarnya.
-          // Untuk konsistensi dengan contoh sebelumnya, kita anggap NoteItem adalah komponen yang siap dianimasikan.
           <NoteItem
-            key={note.id} // Pastikan key ada di elemen terluar dalam map jika NoteItem bukan motion component
+            key={note.id}
             note={note}
             onDelete={onDelete}
             onArchive={listType === 'active' ? onArchive : undefined}
@@ -70,20 +108,19 @@ function NoteList({ notes, onDelete, onArchive, onUnarchive, listType }) {
   );
 }
 
-const noteShape = PropTypes.shape({
-  id: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  body: PropTypes.string.isRequired,
-  createdAt: PropTypes.string.isRequired,
-  archived: PropTypes.bool.isRequired,
-});
-
 NoteList.propTypes = {
-  notes: PropTypes.arrayOf(noteShape).isRequired,
+  notes: PropTypes.arrayOf(noteItemShapeForList).isRequired,
   onDelete: PropTypes.func.isRequired,
   onArchive: PropTypes.func,
   onUnarchive: PropTypes.func,
   listType: PropTypes.oneOf(['active', 'archived']).isRequired,
+  isLoading: PropTypes.bool,
+};
+
+NoteList.defaultProps = {
+  onArchive: undefined,
+  onUnarchive: undefined,
+  isLoading: false,
 };
 
 export default NoteList;
