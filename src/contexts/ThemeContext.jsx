@@ -4,7 +4,9 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useCallback,
 } from 'react';
+import PropTypes from 'prop-types';
 import { createTheme } from '@mui/material/styles';
 import { grey } from '@mui/material/colors';
 
@@ -41,9 +43,9 @@ export function AppThemeProvider({ children }) {
     }
   }, [mode]);
 
-  const toggleThemeMode = () => {
+  const toggleThemeMode = useCallback(() => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-  };
+  }, []);
 
   const muiTheme = useMemo(
     () =>
@@ -167,7 +169,7 @@ export function AppThemeProvider({ children }) {
       toggleThemeMode,
       muiTheme,
     }),
-    [mode, muiTheme]
+    [mode, muiTheme, toggleThemeMode]
   );
 
   return (
@@ -176,3 +178,7 @@ export function AppThemeProvider({ children }) {
     </ThemeContext.Provider>
   );
 }
+
+AppThemeProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};

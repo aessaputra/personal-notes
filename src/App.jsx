@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Routes,
   Route,
@@ -83,6 +84,10 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 function PublicRoute({ children }) {
   const { authedUser, initializing } = useAuth();
   const { translate } = useLocale();
@@ -107,6 +112,10 @@ function PublicRoute({ children }) {
   if (authedUser) return <Navigate to="/" replace />;
   return children;
 }
+
+PublicRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();

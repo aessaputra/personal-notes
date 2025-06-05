@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App.jsx';
+import PropTypes from 'prop-types';
 
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -20,6 +21,10 @@ function MuiThemeWrapper({ children }) {
     </MuiThemeProvider>
   );
 }
+
+MuiThemeWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

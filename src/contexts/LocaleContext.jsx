@@ -4,7 +4,9 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useCallback,
 } from 'react';
+import PropTypes from 'prop-types';
 
 const LOCALE_STORAGE_KEY = 'appLocale';
 
@@ -70,7 +72,6 @@ const translations = {
     logoutSuccessTitle: 'Logout Successful',
     logoutSuccessText: 'You have been successfully logged out.',
     addNoteSuccessTitle: 'Note Added!',
-    addNoteSuccessText: 'Your new note has been successfully added.',
     deleteNoteSuccessTitle: 'Note Deleted!',
     deleteNoteSuccessText: 'The note has been successfully deleted.',
     archiveNoteSuccessTitle: 'Note Archived!',
@@ -79,6 +80,24 @@ const translations = {
     unarchiveNoteSuccessText: 'The note has been successfully unarchived.',
     failTitle: 'Operation Failed',
     oopsTitle: 'Oops...',
+    fetchActiveNotesFail: 'Failed to fetch active notes: {message}',
+    fetchArchivedNotesFail: 'Failed to fetch archived notes: {message}',
+    fetchAllNotesFail: 'Failed to fetch all notes.',
+    fetchAllNotesFailText: 'There was an error loading your notes. Please try again later.',
+    addNoteFailTitle: 'Failed to Add Note',
+    deleteNoteFailTitle: 'Failed to Delete Note',
+    archiveNoteFailTitle: 'Failed to Archive Note',
+    unarchiveNoteFailTitle: 'Failed to Unarchive Note',
+    loginFailTitle: 'Login Failed',
+    registerFailTitle: 'Registration Failed',
+    successTitle: 'Success!',
+    validationWarningTitle: 'Validation Warning',
+    emptyNoteWarning: 'Note title and body cannot be empty.',
+    untitledNote: 'Untitled Note',
+    noNoteBody: 'This note has no content.',
+    backButtonTooltip: 'Back to previous page',
+    deletingText: 'Deleting...',
+    processingText: 'Memproses...',
   },
   id: {
     appName: 'Aplikasi Catatan Pribadi',
@@ -141,7 +160,6 @@ const translations = {
     logoutSuccessTitle: 'Logout Berhasil',
     logoutSuccessText: 'Anda telah berhasil logout.',
     addNoteSuccessTitle: 'Catatan Ditambahkan!',
-    addNoteSuccessText: 'Catatan baru Anda telah berhasil ditambahkan.',
     deleteNoteSuccessTitle: 'Catatan Dihapus!',
     deleteNoteSuccessText: 'Catatan telah berhasil dihapus.',
     archiveNoteSuccessTitle: 'Catatan Diarsipkan!',
@@ -150,6 +168,24 @@ const translations = {
     unarchiveNoteSuccessText: 'Catatan telah berhasil diaktifkan dari arsip.',
     failTitle: 'Operasi Gagal',
     oopsTitle: 'Oops...',
+    fetchActiveNotesFail: 'Gagal mengambil catatan aktif: {message}',
+    fetchArchivedNotesFail: 'Gagal mengambil catatan arsip: {message}',
+    fetchAllNotesFail: 'Gagal mengambil semua catatan.',
+    fetchAllNotesFailText: 'Terjadi kesalahan saat memuat catatan Anda. Silakan coba lagi nanti.',
+    addNoteFailTitle: 'Gagal Menambah Catatan',
+    deleteNoteFailTitle: 'Gagal Menghapus Catatan',
+    archiveNoteFailTitle: 'Gagal Mengarsipkan Catatan',
+    unarchiveNoteFailTitle: 'Gagal Mengaktifkan Catatan',
+    loginFailTitle: 'Login Gagal',
+    registerFailTitle: 'Registrasi Gagal',
+    successTitle: 'Berhasil!',
+    validationWarningTitle: 'Peringatan Validasi',
+    emptyNoteWarning: 'Judul dan isi catatan tidak boleh kosong.',
+    untitledNote: 'Catatan Tanpa Judul',
+    noNoteBody: 'Catatan ini tidak memiliki isi.',
+    backButtonTooltip: 'Kembali ke halaman sebelumnya',
+    deletingText: 'Menghapus...',
+    processingText: 'Memproses...',
   },
 };
 
@@ -181,20 +217,22 @@ export function LocaleProvider({ children }) {
     }
   }, [locale]);
 
-  const toggleLocale = () => {
+  const toggleLocale = useCallback(() => {
     setLocale((prevLocale) => (prevLocale === 'id' ? 'en' : 'id'));
-  };
+  }, []);
 
-  const translate = (key, replacements = {}) => {
-    let translation = translations[locale]?.[key] || key;
-    Object.keys(replacements).forEach((placeholder) => {
-      translation = translation.replace(
-        `{${placeholder}}`,
-        replacements[placeholder]
-      );
-    });
-    return translation;
-  };
+  const translate = useMemo(() => {
+    return (key, replacements = {}) => {
+      let translation = translations[locale]?.[key] || key;
+      Object.keys(replacements).forEach((placeholder) => {
+        translation = translation.replace(
+          `{${placeholder}}`,
+          replacements[placeholder]
+        );
+      });
+      return translation;
+    };
+  }, [locale]);
 
   const contextValue = useMemo(
     () => ({
@@ -202,7 +240,7 @@ export function LocaleProvider({ children }) {
       toggleLocale,
       translate,
     }),
-    [locale, translate]
+    [locale, toggleLocale, translate]
   );
 
   return (
@@ -211,3 +249,7 @@ export function LocaleProvider({ children }) {
     </LocaleContext.Provider>
   );
 }
+
+LocaleProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};

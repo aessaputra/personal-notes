@@ -4,7 +4,9 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useCallback,
 } from 'react';
+import PropTypes from 'prop-types';
 import {
   getUserLogged,
   putAccessToken,
@@ -36,10 +38,12 @@ export function AuthProvider({ children }) {
           } else {
             removeLocalAccessToken();
             setAuthedUser(null);
+            console.error('Gagal mendapatkan pengguna yang login:', data?.message || 'Token tidak valid');
           }
         } catch (e) {
           removeLocalAccessToken();
           setAuthedUser(null);
+          console.error('Error saat fetchUserOnLoad:', e);
         }
       }
       setInitializing(false);
@@ -47,12 +51,12 @@ export function AuthProvider({ children }) {
     fetchUserOnLoad();
   }, []);
 
-  const loginContext = async ({ email, password }) => {
+  const loginContext = useCallback(async ({ email, password }) => {
     const { login: apiLogin } = await import('../utils/network-data');
     const { error, message, data } = await apiLogin({ email, password });
     if (!error && data && data.accessToken) {
       putAccessToken(data.accessToken);
-      const { data: userData, error: userError } = await getUserLogged();
+      const { data: userData, error: userError, message: userMessage } = await getUserLogged();
       if (!userError) {
         setAuthedUser(userData);
         return { error: false };
@@ -62,23 +66,23 @@ export function AuthProvider({ children }) {
         return {
           error: true,
           message:
-            userError.message ||
+            userMessage ||
             'Gagal mendapatkan data pengguna setelah login.',
         };
       }
     }
     return { error: true, message: message || 'Email atau password salah.' };
-  };
+  }, []);
 
-  const registerContext = async ({ name, email, password }) => {
+  const registerContext = useCallback(async ({ name, email, password }) => {
     const { register: apiRegister } = await import('../utils/network-data');
     return await apiRegister({ name, email, password });
-  };
+  }, []);
 
-  const logoutContext = () => {
+  const logoutContext = useCallback(() => {
     removeLocalAccessToken();
     setAuthedUser(null);
-  };
+  }, []);
 
   const contextValue = useMemo(
     () => ({
@@ -88,7 +92,7 @@ export function AuthProvider({ children }) {
       register: registerContext,
       logout: logoutContext,
     }),
-    [authedUser, initializing]
+    [authedUser, initializing, loginContext, registerContext, logoutContext]
   );
 
   return (
@@ -97,3 +101,7 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
